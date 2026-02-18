@@ -90,6 +90,14 @@ export const PRODUCTS: Product[] = [
         lastUpdated: "2026-02-19",
         contentPath: "/docs/backend/order/order-history.md",
       },
+      {
+        id: "pricing",
+        title: "Pricing & Terms",
+        slug: "pricing",
+        category: "Business",
+        lastUpdated: "2026-02-19",
+        contentPath: "/docs/backend/order/pricing.md",
+      },
     ],
   },
 ];
