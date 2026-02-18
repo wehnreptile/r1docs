@@ -1,45 +1,69 @@
-## Requirements
+# Order Creation Flow
 
-- A CONSUMER can place the order from the app.
-- Placed order should be notified to corresponding store owner.
-- Store owner can view/act on all ongoing orders.
-- Orders which are in ready state can be assigned by the system to available agents.
-- Individual parties can mutate the status of the order as required.
-- CONSUMER can view an individual order's detail.
-- CONSUMER can view order history for a selected date range with pagination.
-- STORE_OWNER can view all orders filtered on the basis of ORDER_STATUS, TIME_RANGE and by ORDER_ID with pagination.
-- Delivery agent can view all the orders delivered / on flight with a specified date range. ( on going orders needs to be displayed in a specific pattern ).
+This document outlines the process and requirements for creating a new order within the system.
 
-### Overiew of entities
+## Functional Requirements
+
+The order creation and management system must support the following capabilities:
+
+- **Consumer Order Placement:** Consumers must be able to place orders directly from the application.
+- **Store Notification:** When an order is placed, the relevant store owner must be notified.
+- **Order Management for Store Owners:** Store owners need the ability to view and manage all incoming and ongoing orders.
+- **Automated Agent Assignment:** The system should automatically assign orders that are ready for delivery to available delivery agents.
+- **Status Updates:** All parties involved in an order (consumer, store owner, delivery agent) should be able to update the order's status as it progresses through the fulfillment workflow.
+- **Order Details for Consumers:** Consumers must be able to view the detailed information for any of their individual orders.
+- **Consumer Order History:** Consumers need to be able to access their past orders within a specified date range, with pagination for large result sets.
+- **Advanced Order Filtering for Store Owners:** Store owners require the ability to filter and search for orders based on their status, a time range, or a specific Order ID, with pagination.
+- **Delivery Agent Order History:** Delivery agents must be able to view a history of their completed and in-progress deliveries for a given date range, with a clear distinction for ongoing orders.
+
+## System Logic for Order Placement
+
+When a consumer initiates an order, the following steps and validations occur:
+
+1.  **Input from Consumer:** The consumer submits their `cartId` and the `addressId` for delivery. The request also includes the item details (SKU, quantity, and price) as displayed to them in the app.
+
+2.  **Price and Availability Volatility:** The system must account for potential changes in price or stock availability that can occur between the time the consumer views the items and when they place the order.
+    - _Example Scenario:_ A consumer adds a chocolate bar for ₹10 and a cookie for ₹12 to their cart. By the time they check out, the cookie's price might have dropped to ₹11. The system must handle this discrepancy.
+
+3.  **Validation:**
+    - The system first validates the existence and validity of the provided `cartId` and `addressId`.
+    - It then cross-references the prices and quantities of the items in the cart against the current master product data.
+
+4.  **Order Creation:** If all validations pass, a new `Order` entity is created in the system.
+
+## Data Models
+
+The following data structures are used in the order creation process:
+
+### Cart and Address
 
 ```java
+// Represents an item within the shopping cart
 public class CartItem {
     int cartItemId;
-    int skuId;
-    int quantity; // > 0
-    // What user sees.
-    float price;
+    int skuId;      // Stock Keeping Unit identifier
+    int quantity;   // Must be greater than 0
+    float price;    // Price per item as shown to the user
     float discount;
     float discountedPrice;
 }
 
+// Represents the user's shopping cart
 public class Cart {
     int cartId;
     List<CartItem> cartItems;
 }
 
+// Represents a delivery address
 class Address {
     int addressId;
 }
 ```
 
-- Whenever user places an order , user sends cartId and price details that user was seeing on the app.
-- Chocolate(3) - 10Rs. Cookie (5) : 12Rs => By the we place the order the price of the items might change : Chocoloate - 10Rs, Cookie: 11Rs
-- By the time the user places the order: Chocolate (2) - 10Rs, Cookie (5) - 11Rs.
-- Validate the requested addressId & cartId.
-- When everything is fine then place order ?
+### Order
 
 ```java
+// Represents a completed order
 public class Order {
     int id;
     List<OrderItem> orderItems;
@@ -47,50 +71,53 @@ public class Order {
     OrderStatus orderStatus;
     int userId;
     int storeId;
-    float price; // sum of all individual prices
-    float discount; // overall discount
-    float discountedPrice; // Overall discounted price
-    // timeline of all the statuses
+    float price;           // Sum of all orderItem prices
+    float discount;        // The overall discount applied to the order
+    float discountedPrice; // The final price after discount
+    // A timeline of all status changes should be maintained
 }
 
+// Represents an individual item within an order
 public class OrderItem {
     int id;
     int skuId;
     int quantity;
-    float price; // 35
-    float discount; // 10%
-    float discountedPrice; //  35 - 3.5 = 31.5
+    float price;           // e.g., 35
+    float discount;        // e.g., 10%
+    float discountedPrice; // e.g., 31.5
 }
-
-/*
-Dolo 650 * 4 = 10Rs * 4 = 40Rs , disocunt - 5% => dicountedPrice = 38Rs
-Citrizine * 2 = 3Rs * 2 = 6Rs , discount = 0%, => discountedPrice = 6Rs
-
-total discount: (46 - 44 ) / 46 * 100 = 200 / 46
-total price:  40 + 6 = 46Rs
-total discounted price = 38 + 6 = 44Rs
-*/
 ```
 
-## API For placing the Order.
+_Calculation Example:_
 
-### Request
+```
+Item 1: Dolo 650 (4 units) @ ₹10/unit, 5% discount => ₹38
+Item 2: Citrizine (2 units) @ ₹3/unit, 0% discount => ₹6
 
-Endpoint: /order/create
+Total Price: ₹46
+Total Discounted Price: ₹44
+```
+
+## API: Create Order
+
+### Endpoint
+
+`POST /order/create`
+
+### Request Body
 
 ```json
 {
-  "cartId": 39302, // Contains the userId & storeId
+  "cartId": 39302,
   "addressId": 28392,
   "cartItems": [
-    // What user sees on the app.
     {
       "skuId": 390,
       "quantity": 3,
       "pricePerItem": 10,
       "discount": 10,
       "discountedPrice": 27,
-      "maxOrderLimit": 10 // Upper limit to order a this item. => for instance it's the available stock in the pharmacy.
+      "maxOrderLimit": 10
     },
     {
       "skuId": 400,
@@ -103,14 +130,16 @@ Endpoint: /order/create
   ],
   "platformFee": 15,
   "deliveryAgentFee": 15,
-  "totalPrice": 63, // 27 + 36
+  "totalPrice": 63,
   "orderValue": 93
 }
 ```
 
-### Response (Success)
+**Note:** The client application should perform a preliminary check to ensure that the `quantity` for each item does not exceed the `maxOrderLimit` _before_ calling this API endpoint.
 
-`statuscode: 201`
+### Success Response
+
+- **Status Code:** `201 Created`
 
 ```json
 {
@@ -123,57 +152,58 @@ Endpoint: /order/create
 }
 ```
 
-### Error responses ()
+### Error Responses
 
-- Since user can delete a cart or an address . First check is if both the cartId & delivery address Id are valid or not.
+#### 1. Invalid Cart or Address
 
-`statusCode: 404`
+- **Trigger:** The provided `cartId` or `addressId` does not exist or is invalid.
+- **Status Code:** `404 Not Found`
 
 ```json
 {
   "success": false,
-  "message": "Cart / AddressId are not present", // "Cart is invalid" / "Invalid address"
+  "message": "Cart or AddressId not found.",
   "data": null,
   "errors": []
 }
 ```
 
-- When the prices are not matching with the sent items prices then throw an exception along with sending the updated details.
+#### 2. Price or Availability Mismatch
+
+- **Trigger:** The price, discount, or availability (`maxOrderLimit`) of one or more items has changed since they were added to the cart.
+- **Response:** The API returns the updated item details. The client application is expected to display this new information to the user for confirmation before retrying the order placement.
 
 ```json
 {
   "success": false,
-  "message": "One or more items price is updated", // "One or more items are unavailable"
+  "message": "One or more items have been updated.",
   "data": {
-    // Update price details of individual items => Similar data type that we receive to the server.
-    "cartId": 39302, // Contains the userId & storeId
+    "cartId": 39302,
     "addressId": 28392,
     "cartItems": [
       {
         "skuId": 390,
         "quantity": 3,
-        "pricePerItem": 10,
+        "pricePerItem": 10, // Price might be updated
         "discount": 10,
         "discountedPrice": 27,
-        "maxOrderLimit": 3
+        "maxOrderLimit": 3 // Availability has changed
       },
       {
-        "skuId": 390,
-        "quantity": 5,
-        "pricePerItem": 10,
+        "skuId": 400,
+        "quantity": 5, // User requested quantity
+        "pricePerItem": 20,
         "discount": 10,
-        "discountedPrice": 27,
-        "maxOrderLimit": 3,
-        "message": "Maximum ${3} can be ordered" // "Out of stock"
-        // While placing the order client should handle this error. Loop through every cart item and check if it's quantity is less than the maxOrderLimit or not. IF all the items quantities are <= maxOrderLimit then only call the /order/create API.
+        "discountedPrice": 36,
+        "maxOrderLimit": 3, // Current limit
+        "message": "A maximum of 3 units can be ordered."
       }
     ],
     "platformFee": 15,
     "deliveryAgentFee": 15,
-    "totalPrice": 63, // 27 + 36
-    "orderValue": 93,
-    "maxOrderLimit": 10
+    "totalPrice": 63,
+    "orderValue": 93
   },
-  "error": []
+  "errors": []
 }
 ```

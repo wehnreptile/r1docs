@@ -74,6 +74,22 @@ export const PRODUCTS: Product[] = [
         lastUpdated: "2026-02-16",
         contentPath: "/docs/backend/order/order-create.md",
       },
+      {
+        id: "order-status-mutation",
+        title: "Order Status Mutation",
+        slug: "order-status-mutation",
+        category: "Business",
+        lastUpdated: "2026-02-19",
+        contentPath: "/docs/backend/order/order-status-update.md",
+      },
+      {
+        id: "order-history",
+        title: "Order History",
+        slug: "order-history",
+        category: "Business",
+        lastUpdated: "2026-02-19",
+        contentPath: "/docs/backend/order/order-history.md",
+      },
     ],
   },
 ];
