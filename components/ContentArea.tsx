@@ -14,6 +14,7 @@ import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 
 const ContentArea: React.FC<ContentAreaProps> = ({
   doc,
@@ -159,7 +160,13 @@ const ContentArea: React.FC<ContentAreaProps> = ({
           </div>
         ) : (
           <>
-            <ReactMarkdown components={CodeBlock} remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
+            <ReactMarkdown
+              components={CodeBlock}
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeRaw]}
+            >
+              {content}
+            </ReactMarkdown>
 
             <div className="mt-20 pt-10 border-t border-slate-100 grid grid-cols-2 gap-4">
               {hasPrev ? (
@@ -200,17 +207,7 @@ const ContentArea: React.FC<ContentAreaProps> = ({
 
       <footer className="mt-32 pt-12 border-t border-slate-100">
         <div className="flex flex-col sm:flex-row justify-between items-center text-sm text-slate-400 gap-6">
-          <p className="font-medium">
-            © 2024 DevDocs Central • Engineering Platform Team
-          </p>
-          <div className="flex space-x-8 font-bold text-xs uppercase tracking-widest">
-            <a href="#" className="hover:text-indigo-600 transition-colors">
-              Privacy
-            </a>
-            <a href="#" className="hover:text-indigo-600 transition-colors">
-              Security
-            </a>
-          </div>
+          <p className="font-medium">© 2026 Reptile docs • Engineering Team</p>
         </div>
       </footer>
     </article>

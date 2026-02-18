@@ -57,18 +57,7 @@ const Header: React.FC<HeaderProps> = ({ onOpenSearch, onGoHome, isHome }) => {
           </span>
         </button>
 
-        <nav className="hidden md:flex space-x-6 font-medium text-sm text-slate-600">
-          <a
-            href="#"
-            className="hover:text-indigo-600 transition-colors"
-            onClick={(e) => {
-              e.preventDefault();
-              onGoHome();
-            }}
-          >
-            Portal
-          </a>
-        </nav>
+        {/* Portal link removed per request */}
       </div>
     </header>
   );
