@@ -1,10 +1,10 @@
-# 📖 Order Lifecycle and Entity Designs
+# Order Lifecycle and Entity Designs
 
 This document outlines the lifecycle of an order within the platform, including entity designs for addressing, cart management, and the final order/delivery flow.
 
 ---
 
-## 🛒 Cart Management Flow
+## Cart Management Flow
 
 Every time a user intends to purchase products from our platform, they first add items to a **Cart** before placing the order.
 
@@ -57,7 +57,7 @@ Every time a user intends to purchase products from our platform, they first add
 
 ---
 
-## 🛍️ Order Lifecycle and Entity Designs
+## Order Lifecycle and Entity Designs
 
 Once a cart is finalized and the order value limit is met, the cart contents are converted into an **Order**.
 

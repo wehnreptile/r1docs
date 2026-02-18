@@ -15,6 +15,13 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+// Include markdown files in the build so production can load them.
+// Use new Vite options: `query: '?raw'` and `import: 'default'`.
+// @ts-ignore - Vite-specific API
+const MARKDOWN_FILES: Record<string, () => Promise<string>> = import.meta.glob(
+  "/docs/**/*.md",
+  { query: "?raw", import: "default" },
+);
 
 const ContentArea: React.FC<ContentAreaProps> = ({
   doc,
@@ -34,14 +41,37 @@ const ContentArea: React.FC<ContentAreaProps> = ({
       setIsLoading(true);
       setError(null);
       try {
-        const response = await fetch(doc.contentPath);
-        if (!response.ok) throw new Error(`Failed to load ${doc.contentPath}`);
-        const text = await response.text();
-        setContent(text);
+        // Try to load from bundled markdown files first (works in Vite build)
+        const candidates = [
+          doc.contentPath,
+          `.${doc.contentPath}`,
+          doc.contentPath.replace(/^\//, ""),
+          `./${doc.contentPath.replace(/^\//, "")}`,
+        ];
+
+        let loader: (() => Promise<string>) | undefined;
+        for (const key of candidates) {
+          if ((MARKDOWN_FILES as any)[key]) {
+            loader = (MARKDOWN_FILES as any)[key];
+            break;
+          }
+        }
+
+        if (loader) {
+          const text = await loader();
+          setContent(text);
+        } else {
+          // Fallback to network fetch (useful in dev or alternate deployments)
+          const response = await fetch(doc.contentPath);
+          if (!response.ok)
+            throw new Error(`Failed to load ${doc.contentPath}`);
+          const text = await response.text();
+          setContent(text);
+        }
       } catch (err) {
         console.error(err);
         setError(
-          `Could not load the documentation file: ${doc.contentPath}. Ensure the file exists in the repository.`,
+          `Could not load the documentation file: ${doc.contentPath}. Ensure the file exists in the repository and is included in the build.`,
         );
       } finally {
         setIsLoading(false);
