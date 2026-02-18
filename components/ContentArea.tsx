@@ -193,7 +193,7 @@ const ContentArea: React.FC<ContentAreaProps> = ({
             <ReactMarkdown
               components={CodeBlock}
               remarkPlugins={[remarkGfm]}
-              rehypePlugins={[rehypeRaw]}
+              rehypePlugins={[rehypeRaw as any]}
             >
               {content}
             </ReactMarkdown>
