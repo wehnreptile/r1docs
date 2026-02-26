@@ -1,3 +1,4 @@
+import API_CONTRACTS from "./api-contracts";
 import { Product } from "./types";
 
 export const PRODUCTS: Product[] = [
@@ -98,6 +99,7 @@ export const PRODUCTS: Product[] = [
         lastUpdated: "2026-02-19",
         contentPath: "/docs/backend/order/pricing.md",
       },
+      ...API_CONTRACTS,
     ],
   },
 ];
