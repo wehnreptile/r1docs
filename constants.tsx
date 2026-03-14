@@ -99,6 +99,15 @@ export const PRODUCTS: Product[] = [
         lastUpdated: "2026-02-19",
         contentPath: "/docs/backend/order/pricing.md",
       },
+      {
+        id: "searchanddiscovery",
+        title: "Recommendations",
+        slug: "search",
+        category: "Search & Discovery",
+        lastUpdated: "2026-03-15",
+        contentPath:
+          "/docs/backend/search/pharmacy-discovery-and-recommendations.md",
+      },
       ...API_CONTRACTS,
     ],
   },
