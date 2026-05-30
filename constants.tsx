@@ -111,4 +111,21 @@ export const PRODUCTS: Product[] = [
       ...API_CONTRACTS,
     ],
   },
+  {
+    id: "ideas",
+    name: "Product Ideas",
+    icon: "💡",
+    description:
+      "Early-stage product ideas captured before they get promoted into specs.",
+    docs: [
+      {
+        id: "digital-prescriptions",
+        title: "Digital Prescription Network",
+        slug: "digital-prescriptions",
+        category: "Idea",
+        lastUpdated: "2026-05-30",
+        contentPath: "/docs/ideas/digital-prescriptions.md",
+      },
+    ],
+  },
 ];
