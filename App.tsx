@@ -123,7 +123,21 @@ const App: React.FC = () => {
 
         <main className="flex-1 overflow-y-auto">
           {currentRoute === AppRoute.HOME ? (
-            <LandingPage onSelectProduct={navigateToProduct} />
+            <LandingPage
+              onSelectProduct={navigateToProduct}
+              onSelectDoc={(prod, doc) => {
+                setActiveProduct(prod);
+                setActiveDoc(doc);
+                setCurrentRoute(AppRoute.PRODUCT);
+                window.scrollTo(0, 0);
+                window.history.pushState(
+                  {},
+                  "",
+                  `/docs/${prod.id}/${doc.slug}`,
+                );
+              }}
+              onOpenSearch={() => setIsSearchOpen(true)}
+            />
           ) : (
             activeDoc && (
               <ContentArea

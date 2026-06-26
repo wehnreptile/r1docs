@@ -15,6 +15,57 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
+import mermaid from "mermaid";
+
+// Initialise mermaid once for the whole app.
+mermaid.initialize({
+  startOnLoad: false,
+  theme: "neutral",
+  securityLevel: "loose",
+  fontFamily: "JetBrains Mono, monospace",
+});
+
+/**
+ * Renders a ```mermaid fenced block as an SVG diagram. Falls back to showing the
+ * raw diagram source if mermaid fails to parse it.
+ */
+const MermaidDiagram: React.FC<{ chart: string }> = ({ chart }) => {
+  const [svg, setSvg] = useState<string>("");
+  const [failed, setFailed] = useState<boolean>(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setFailed(false);
+    const id = "mermaid-" + Math.random().toString(36).slice(2, 11);
+    mermaid
+      .render(id, chart)
+      .then(({ svg }) => {
+        if (!cancelled) setSvg(svg);
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [chart]);
+
+  if (failed) {
+    return (
+      <pre className="bg-slate-900 text-slate-200 p-4 rounded-xl overflow-x-auto text-sm font-mono my-6">
+        {chart}
+      </pre>
+    );
+  }
+
+  return (
+    <div
+      className="my-8 flex justify-center overflow-x-auto rounded-2xl border border-slate-200 bg-white p-6"
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
+};
+
 // Include markdown files in the build so production can load them.
 // Use new Vite options: `query: '?raw'` and `import: 'default'`.
 // @ts-ignore - Vite-specific API
@@ -81,19 +132,86 @@ const ContentArea: React.FC<ContentAreaProps> = ({
     fetchDoc();
   }, [doc]);
 
+  // Reset scroll to the top on every doc change. The scroll container is the
+  // <main className="overflow-y-auto"> wrapper in App.tsx, not window — and
+  // in-app link clicks navigate via popstate, so resetting here covers every
+  // navigation path (sidebar, cross-links, next/prev, back/forward).
+  useEffect(() => {
+    const scroller = document.querySelector("main");
+    if (scroller) scroller.scrollTo({ top: 0, left: 0 });
+    else window.scrollTo(0, 0);
+  }, [doc]);
+
   const copyToClipboard = (text: string, id: number) => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const CodeBlock = {
-    code({ node, inline, className, children, ...props }: any) {
+  const MarkdownComponents = {
+    a({ node, href, children, ...props }: any) {
+      // Internal doc links (/docs/:productId/:slug) navigate in-app without a full
+      // page reload. App.tsx listens for `popstate` and re-parses the URL.
+      const isInternal = typeof href === "string" && href.startsWith("/docs/");
+      if (isInternal) {
+        return (
+          <a
+            href={href}
+            onClick={(e) => {
+              e.preventDefault();
+              window.history.pushState({}, "", href);
+              window.dispatchEvent(new PopStateEvent("popstate"));
+            }}
+            {...props}
+          >
+            {children}
+          </a>
+        );
+      }
+      const isHash = typeof href === "string" && href.startsWith("#");
+      return (
+        <a
+          href={href}
+          {...(isHash ? {} : { target: "_blank", rel: "noreferrer noopener" })}
+          {...props}
+        >
+          {children}
+        </a>
+      );
+    },
+    // Strip the default <pre> wrapper; block rendering is handled in `code`.
+    pre({ children }: any) {
+      return <>{children}</>;
+    },
+    code({ node, className, children, ...props }: any) {
       const match = /language-(\w+)/.exec(className || "");
       const codeString = String(children).replace(/\n$/, "");
+      // A fenced block either has a language or spans multiple lines. Anything
+      // else is inline code. (react-markdown v10 no longer passes `inline`.)
+      const isBlock = !!match || codeString.includes("\n");
+
+      // Mermaid diagrams render as SVG.
+      if (match && match[1] === "mermaid") {
+        return <MermaidDiagram chart={codeString} />;
+      }
+
+      // Inline code.
+      if (!isBlock) {
+        return (
+          <code
+            className="bg-slate-100 text-indigo-600 px-1.5 py-0.5 rounded text-sm font-mono border border-slate-200 font-medium"
+            {...props}
+          >
+            {children}
+          </code>
+        );
+      }
+
+      // Block code: syntax-highlighted when a language is given, otherwise a
+      // clean monospace block (preserves whitespace for ASCII diagrams).
       const id = Math.floor(Math.random() * 10000);
-      return !inline && match ? (
-        <div className="group relative">
+      return (
+        <div className="group relative my-6">
           <button
             onClick={() => copyToClipboard(codeString, id)}
             className="absolute right-4 top-4 p-1.5 rounded bg-slate-800 text-slate-400 hover:text-white opacity-0 group-hover:opacity-100 transition-opacity z-10 text-xs font-bold"
@@ -102,20 +220,12 @@ const ContentArea: React.FC<ContentAreaProps> = ({
           </button>
           <SyntaxHighlighter
             style={vscDarkPlus}
-            language={match[1]}
+            language={match ? match[1] : "text"}
             PreTag="div"
-            {...props}
           >
             {codeString}
           </SyntaxHighlighter>
         </div>
-      ) : (
-        <code
-          className="bg-slate-100 text-indigo-600 px-1.5 py-0.5 rounded text-sm font-mono border border-slate-200 font-medium"
-          {...props}
-        >
-          {children}
-        </code>
       );
     },
   };
@@ -191,7 +301,7 @@ const ContentArea: React.FC<ContentAreaProps> = ({
         ) : (
           <>
             <ReactMarkdown
-              components={CodeBlock}
+              components={MarkdownComponents}
               remarkPlugins={[remarkGfm]}
               rehypePlugins={[rehypeRaw as any]}
             >

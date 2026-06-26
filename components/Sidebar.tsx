@@ -1,5 +1,6 @@
 import React from "react";
 import { Product, DocPage } from "../types";
+import ProductIcon from "./ProductIcon";
 
 interface SidebarProps {
   product: Product;
@@ -39,7 +40,9 @@ const Sidebar: React.FC<SidebarProps> = ({
           Back to Portal
         </button>
         <div className="flex items-center space-x-3">
-          <span className="text-2xl">{product.icon}</span>
+          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white">
+            <ProductIcon id={product.id} className="h-[18px] w-[18px]" />
+          </div>
           <h2 className="font-bold text-slate-800 leading-tight">
             {product.name}
           </h2>
