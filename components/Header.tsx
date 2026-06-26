@@ -9,27 +9,9 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onOpenSearch, onGoHome, isHome }) => {
   return (
     <header className="h-16 border-b border-slate-200 bg-white px-6 flex items-center justify-between z-10 sticky top-0">
-      <div
-        className="flex items-center space-x-4 cursor-pointer"
-        onClick={onGoHome}
-      >
-        <div className="bg-indigo-600 p-2 rounded-lg">
-          <svg
-            className="w-6 h-6 text-white"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-        </div>
-        <h1 className="font-bold text-xl tracking-tight text-slate-800">
-          Reptile documentation.
+      <div className="flex items-center cursor-pointer" onClick={onGoHome}>
+        <h1 className="font-bold text-xl tracking-tight text-slate-900">
+          Reptile Docs
         </h1>
       </div>
 

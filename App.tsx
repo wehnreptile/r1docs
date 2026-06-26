@@ -57,6 +57,14 @@ const App: React.FC = () => {
     return () => window.removeEventListener("popstate", onPop);
   }, []);
 
+  // Keep the browser tab title in sync with the active page.
+  useEffect(() => {
+    document.title =
+      currentRoute === AppRoute.PRODUCT && activeDoc
+        ? `${activeDoc.title} | Reptile docs`
+        : "Reptile docs";
+  }, [currentRoute, activeDoc]);
+
   const navigateToProduct = (product: Product) => {
     setActiveProduct(product);
     setActiveDoc(product.docs[0] || null);
