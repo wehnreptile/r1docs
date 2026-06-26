@@ -231,7 +231,7 @@ const ContentArea: React.FC<ContentAreaProps> = ({
   };
 
   return (
-    <article className="w-4/5 mx-auto px-6 sm:px-10 py-16 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <article className="mx-auto max-w-6xl px-4 sm:px-8 py-8 sm:py-14 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <nav className="flex items-center text-xs font-bold tracking-widest uppercase text-slate-400 mb-8 space-x-2">
         <span className="hover:text-indigo-600 transition-colors cursor-pointer">
           {productName}
