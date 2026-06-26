@@ -70,11 +70,12 @@ list of secondary assumptions made within these bounds.
 ## Glossary
 
 | Term                      | Meaning                                                                                                               |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
+| ------------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | **Agent**                 | A delivery partner (`UserRole.DELIVERY_PARTNER`), persisted as `DeliveryAgent`.                                       |
 | **On-duty / Off-duty**    | Whether an agent is currently working. Only **on-duty** agents are in the live pool and eligible for offers.          |
 | **IDLE / OFFERED / BUSY** | The agent's live availability. `IDLE` = free, `OFFERED` = reserved for a pending offer, `BUSY` = actively delivering. |
 | **Offer**                 | A time-boxed proposal of one order to one agent. Exactly one active offer per order at a time.                        |
 | **Blacklist (per-order)** | The set of agents who have rejected / timed out on a given order and must not be re-offered it.                       |
 | **Pending queue**         | Orders that are `READY_FOR_PICKUP` but have no eligible agent right now, awaiting retry.                              |
-| **Pickup location**       | The store's `(lat, lng)`. **Drop location**                                                                           | The customer's delivery `Address (latitude, longitude)`. |
+| **Pickup location**       | The store's `(lat, lng)` - where the order is collected.                                                             |
+| **Drop location**         | The customer's delivery `Address (latitude, longitude)` - where the order is delivered.                              |

@@ -12,6 +12,7 @@ const App: React.FC = () => {
   const [activeProduct, setActiveProduct] = useState<Product | null>(null);
   const [activeDoc, setActiveDoc] = useState<DocPage | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -80,6 +81,7 @@ const App: React.FC = () => {
     setActiveProduct(null);
     setActiveDoc(null);
     setCurrentRoute(AppRoute.HOME);
+    setIsSidebarOpen(false);
     window.scrollTo(0, 0);
     window.history.pushState({}, "", "/");
   };
@@ -87,6 +89,7 @@ const App: React.FC = () => {
   const navigateToDoc = (doc: DocPage) => {
     setActiveDoc(doc);
     setCurrentRoute(AppRoute.PRODUCT);
+    setIsSidebarOpen(false);
     window.scrollTo(0, 0);
     if (activeProduct) {
       const newPath = `/docs/${activeProduct.id}/${doc.slug}`;
@@ -119,6 +122,8 @@ const App: React.FC = () => {
           activeDocId={activeDoc?.id || ""}
           onSelectDoc={navigateToDoc}
           onGoHome={navigateToHome}
+          isOpen={isSidebarOpen}
+          onClose={() => setIsSidebarOpen(false)}
         />
       )}
 
@@ -127,6 +132,8 @@ const App: React.FC = () => {
           onOpenSearch={() => setIsSearchOpen(true)}
           onGoHome={navigateToHome}
           isHome={currentRoute === AppRoute.HOME}
+          showMenu={currentRoute === AppRoute.PRODUCT}
+          onToggleSidebar={() => setIsSidebarOpen((v) => !v)}
         />
 
         <main className="flex-1 overflow-y-auto">
