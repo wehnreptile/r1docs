@@ -1,8 +1,5 @@
 # Admin Delivery APIs (`@AdminOnly`)
 
-Same conventions as the DMS API Contracts doc apply here: the `Response<T> { success, data, message,
-errors }` envelope, `@AdminOnly` enforcement, and the acting admin resolved from the JWT.
-
 This doc covers three admin-only delivery endpoints, complementing the agent-management and
 order-assignment endpoints already defined in the main API Contracts doc.
 
@@ -20,10 +17,10 @@ a cluster of stuck orders in a region.
 
 | Param | Type | Required | Notes |
 |---|---|---|---|
-| `latitude` | `Double` | yes | Center point latitude |
-| `longitude` | `Double` | yes | Center point longitude |
-| `radiusKm` | `Double` | no (default `10.0`) | Search radius in km |
-| `status` | `OrderStatus` | yes | Filters to a single order status (e.g. `READY_FOR_PICKUP`, `AGENT_ASSIGNED`, `PICKED_UP`) |
+| `latitude` | `Double` | yes | Center point latitude. Missing → `400`. |
+| `longitude` | `Double` | yes | Center point longitude. Missing → `400`. |
+| `radius` | `Double` | no (default `5000`) | Search radius in **meters**. Upper limit `50000`; values above are rejected with `400`. |
+| `orderStatus` | `OrderStatus` | yes | Must be one of `ORDER_PLACED`, `ORDER_ACCEPTED`, `ORDER_READY_FOR_PICKUP`, `AGENT_ASSIGNED`, `PICKED_UP`. Any other value → `400`. |
 
 ```json
 {
@@ -53,26 +50,35 @@ a cluster of stuck orders in a region.
       }
     }
   ],
-  "message": "success", "errors": []
+  "message": "Fetched orders successfully within 5000 meters radius from given location",
+  "errors": []
 }
 ```
 
-> `agentDetails` is `null` for orders still in `READY_FOR_PICKUP` (no agent assigned yet). When
+> `agentDetails` is `null` for orders still in `ORDER_READY_FOR_PICKUP` (no agent assigned yet). When
 > present, `isEligibleForceMap` is computed against *this* order's §3 conditions — see §2 for how
-> that differs from the unscoped `/agents/active` listing.
+> that differs from the region-scoped `/agents/active` listing.
 
 `200` → list (possibly empty) of matching orders. No agent, so no 404/409 case — an empty radius
-match just returns `[]`.
+match just returns `[]`. Missing/invalid `latitude`, `longitude`, `orderStatus`, or an out-of-range
+`radius` → `400`.
 
 ---
 
-### 2. List currently active agents
+### 2. List currently active agents near a location
 
 **`GET`** `/delivery/agents/active`
 
-Returns all agents currently in the live pool (i.e. on duty — `IDLE`, `BUSY`, or `OFFERED`), regardless
-of status.
- 
+Returns agents currently in the live pool (i.e. on duty — `IDLE`, `BUSY`, or `OFFERED`) that fall
+within a given radius of a point, so the admin sees only agents relevant to the region in view.
+
+**Query params**
+
+| Param | Type | Required | Notes |
+|---|---|---|---|
+| `latitude` | `Double` | yes | Center point latitude. Missing → `400`. |
+| `longitude` | `Double` | yes | Center point longitude. Missing → `400`. |
+| `radius` | `Double` | no (default `5000`) | Search radius in **meters**. Upper limit `50000`; values above are rejected with `400`. |
 
 ```json
 {
@@ -88,17 +94,19 @@ of status.
       "isEligibleForceMap": true
     }
   ],
-  "message": "success", "errors": []
+  "message": "Fetched agents successfully within 5000 meters radius from given location",
+  "errors": []
 }
 ```
 
-`200` → list of active agents (empty array if none on duty).
+`200` → list of active agents within the region (empty array if none). Missing `latitude`/`longitude`
+or an out-of-range `radius` → `400`.
 
 > `isEligibleForceMap` evaluates the §3 eligibility criteria against whatever context is available
 > at the calling endpoint. Here, there's no order in scope, so only the order-agnostic condition
-> applies — agent on duty and `IDLE`. When `AgentDetails` is embedded inside an `AdminOrderView`
-> (§1), all three §3 conditions are evaluated against that specific order — agent `IDLE`, order
-> `READY_FOR_PICKUP`, and distance ≤10 km to that order's store.
+> applies — agent on duty and `IDLE` or `OFFERED`. When `AgentDetails` is embedded inside an
+> `AdminOrderView` (§1), all three §3 conditions are evaluated against that specific order — agent
+> `IDLE` or `OFFERED`, order `ORDER_READY_FOR_PICKUP`, and distance ≤10 km to that order's store.
 
 ---
 
@@ -114,18 +122,18 @@ admin's pick blindly.
 
 **Eligibility criteria** (validated server-side before mapping):
 
-1. Agent must be **on duty and `IDLE`** — not `OFF_DUTY`, `BUSY`, or `OFFERED`.
-2. Order must be in status **`READY_FOR_PICKUP`**.
+1. Agent must be **on duty** and either `IDLE` or `OFFERED` — not `OFF_DUTY` or `BUSY`.
+2. Order must be in status **`ORDER_READY_FOR_PICKUP`**.
 3. Distance between the agent's last-reported location and the order's store must be **≤ 10 km**.
 
-If all three pass: agent is reserved `IDLE → BUSY` (CAS), order moves
-`READY_FOR_PICKUP → AGENT_ASSIGNED`, and the assignment-confirmed push is sent to the agent.
+If all three pass: agent is reserved `IDLE`/`OFFERED → BUSY` (CAS), order moves
+`ORDER_READY_FOR_PICKUP → AGENT_ASSIGNED`, and the assignment-confirmed push is sent to the agent.
 
 | Outcome | HTTP | `message` |
 |---|---|---|
 | Mapped successfully | `200` | — (empty body) |
-| Agent off-duty / busy / already offered | `409` | `"Selected agent is not available (off-duty, busy, or already offered)."` |
-| Order not `READY_FOR_PICKUP` | `409` | `"Order cannot be force-mapped in its current status."` |
+| Agent off-duty / busy | `409` | `"Selected agent is not available (off-duty or busy)."` |
+| Order not `ORDER_READY_FOR_PICKUP` | `409` | `"Order cannot be force-mapped in its current status."` |
 | Agent farther than 10 km from store | `409` | `"Selected agent is too far from the store for this order."` |
 | Order or agent doesn't exist | `404` | `"Order or agent not found."` |
 
@@ -139,5 +147,5 @@ If all three pass: agent is reserved `IDLE → BUSY` (CAS), order moves
 | Method | Path | Role | Purpose |
 |--------|------|------|---------|
 | GET | `/delivery/orders` | Admin | Ongoing orders near a location, filtered by status |
-| GET | `/delivery/agents/active` | Admin | List all on-duty agents (unfiltered) |
+| GET | `/delivery/agents/active` | Admin | On-duty agents within a region near a location |
 | POST | `/delivery/orders/{orderId}/map/{agentId}` | Admin | Force-map agent to order (path params, with eligibility checks) |

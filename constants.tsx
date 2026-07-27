@@ -198,7 +198,7 @@ export const PRODUCTS: Product[] = [
       },
       {
         id:"delivery-admin-api",
-        title:"Admin APIS For Delivery",
+        title:"DMS APIs for Admin",
         slug:"delivery-admin-api",
         category:"Delivery",
         lastUpdated:"2026-07-19",
