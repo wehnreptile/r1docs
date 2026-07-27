@@ -197,6 +197,14 @@ export const PRODUCTS: Product[] = [
         contentPath: "/docs/backend/delivery/edge-cases-and-failure-handling.md",
       },
       {
+        id:"delivery-admin-api",
+        title:"DMS APIs for Admin",
+        slug:"delivery-admin-api",
+        category:"Delivery",
+        lastUpdated:"2026-07-19",
+        contentPath:"/docs/backend/delivery/admin-api.md"
+      },
+      {
         id: "delivery-assumptions",
         title: "Assumptions & Decisions",
         slug: "delivery-assumptions",
