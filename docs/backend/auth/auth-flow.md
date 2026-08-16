@@ -20,7 +20,7 @@ There are two possible user journeys depending on the response from the `auth/se
 - If the API returns a `404 Not Found` status, it indicates that the user is new.
 - The application should navigate to a registration screen.
 - The registration screen should display the user's phone number (`Registration for +91 928392948290`).
-- The screen should include input fields for `userName`, `email`, and `password`, with validation based on the `AuthController.java` file in the `pharma-service` repository.
+- The screen should include input fields for `userName`, `email`, and `password`, with validation based on the `AuthController.java` file in the `rgs` repository.
 - A button with the text `Register & Send OTP` should trigger a call to the `auth/send-otp` endpoint with all the registration details.
 
 #### Existing User Login

@@ -1,6 +1,6 @@
 # Modularization & Future Migration
 
-The DMS lives inside `pharma-service` today but is built to be **lifted out into a standalone
+The DMS lives inside `rgs` today but is built to be **lifted out into a standalone
 delivery-service** later with minimal rework. This document defines the package layout, the
 **ports** that form the module boundary, and the step-by-step extraction playbook.
 
@@ -119,7 +119,7 @@ schema - the DMS never touches `OrderRepository` itself.
 | In-process today | Standalone delivery-service tomorrow |
 |------------------|--------------------------------------|
 | `OrderReadyForPickupEvent` via Spring `@TransactionalEventListener` | Same event published to a **message broker** (Kafka/SQS/Rabbit); DMS consumes it. The order domain becomes a producer; an outbox pattern preserves the after-commit guarantee. |
-| `OrderGateway` in-process bean | `OrderGateway` becomes a **REST/gRPC client** to pharma-service's order API. Same interface, new impl. |
+| `OrderGateway` in-process bean | `OrderGateway` becomes a **REST/gRPC client** to rgs's order API. Same interface, new impl. |
 | `FcmNotifier` | Unchanged - already self-contained (Firebase only). Moves with the DMS. |
 | Redis (`dms:*` keys) | Moves with the DMS as **its own** Redis. Already isolated by the `dms:` namespace. |
 | Postgres `orders` / `delivery_agents` | DMS owns `delivery_agents` + its own delivery tables; reads order facts via `OrderGateway`. The agent-assignment write becomes an order-API call. |
@@ -147,7 +147,7 @@ extraction is already satisfied.
 1. Stand up `delivery-service` with its own Redis + the `delivery_agents` table (and any
    delivery-owned tables).
 2. Re-implement `OrderGateway` as a REST/gRPC client; add the corresponding order API to
-   pharma-service (read locations/context, assign-agent).
+   rgs (read locations/context, assign-agent).
 3. Replace the Spring event with broker publish (outbox) on the producer side and a consumer in
    delivery-service.
 4. Move `delivery.*` packages over as-is; only the two port impls change.

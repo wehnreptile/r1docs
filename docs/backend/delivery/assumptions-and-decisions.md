@@ -67,11 +67,11 @@ All are externalised to `application.properties` so ops can tune without a rebui
 
 | # | Assumption | If wrong… |
 |---|-----------|-----------|
-| A1 | A **Redis instance** is (or will be) available to `pharma-service`. None is wired in `pom.xml`/properties today. | Need to provision Redis before implementation; otherwise the in-memory cache stays as a stop-gap (loses crash-safety + multi-instance). |
+| A1 | A **Redis instance** is (or will be) available to `rgs`. None is wired in `pom.xml`/properties today. | Need to provision Redis before implementation; otherwise the in-memory cache stays as a stop-gap (loses crash-safety + multi-instance). |
 | A2 | A **Firebase project + service-account** exists for FCM, and the agent app is already integrated with FCM to receive tokens. | Notifications can't be sent; would need to set up Firebase first. |
 | A3 | `Store.lat/lng` is the correct **pickup** location and `Address.latitude/longitude` is the correct **drop** location. | Matching uses the wrong coordinates. |
 | A4 | The agent app reports location every ~3 min (per `agents-mapping.md`) and will call the new `/offer/respond` + `/fcm-token` endpoints. | Heartbeat/staleness tuning and the offer flow assume this client behaviour. |
-| A5 | `pharma-service` runs (or will run) **multiple instances** eventually - hence the distributed locks. If always single-instance, the locks are cheap no-ops but harmless. | None - design is safe either way. |
+| A5 | `rgs` runs (or will run) **multiple instances** eventually - hence the distributed locks. If always single-instance, the locks are cheap no-ops but harmless. | None - design is safe either way. |
 
 ---
 
