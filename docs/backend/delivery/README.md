@@ -18,13 +18,13 @@ same problem, adapted to our scale and our current monolith.
 
 ## Where this lives (and where it's going)
 
-For now the DMS lives **inside `pharma-service`** under the package
+For now the DMS lives **inside `rgs`** under the package
 `com.reptile.pharmacy.delivery`. It is deliberately **modularised** so that it can later be lifted
 out into a **standalone delivery-service** with minimal churn. See
 [Modularization & Migration](/docs/backend-gateway/delivery-modularization) for the seams that make
 this possible.
 
-> **Design principle:** the rest of `pharma-service` talks to the DMS only through a small set of
+> **Design principle:** the rest of `rgs` talks to the DMS only through a small set of
 > **ports** (interfaces) and **events** - never by reaching into delivery internals. The DMS, in
 > turn, talks back to the order domain only through an outbound port. Today both sides of those
 > ports are in-process method calls; tomorrow they become RPC calls.

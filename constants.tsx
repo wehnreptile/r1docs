@@ -117,6 +117,14 @@ export const PRODUCTS: Product[] = [
         contentPath: "/docs/backend/cart/cart-details.md",
       },
       {
+        id: "database-schema",
+        title: "Database Schema (DBML)",
+        slug: "database-schema",
+        category: "Database",
+        lastUpdated: "2026-10-25",
+        contentPath: "/docs/backend/database/README.md",
+      },
+      {
         id: "delivery-overview",
         title: "Overview",
         slug: "delivery-overview",

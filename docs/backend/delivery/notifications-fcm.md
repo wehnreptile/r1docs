@@ -129,4 +129,4 @@ public interface FcmNotifier {
 `FcmNotifier` lives in `com.reptile.pharmacy.delivery.notification`. It is an **outbound port** of the
 DMS - when the DMS becomes a separate service, this implementation moves with it unchanged, since it
 already depends only on Firebase + the DMS's own payload types, not on anything else in
-`pharma-service`.
+`rgs`.

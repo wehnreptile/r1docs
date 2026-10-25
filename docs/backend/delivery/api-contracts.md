@@ -1,6 +1,6 @@
 # API Contracts
 
-All DMS endpoints. They follow the existing `pharma-service` conventions: the standard
+All DMS endpoints. They follow the existing `rgs` conventions: the standard
 `Response<T> { success, data, message, errors }` envelope, role enforcement via the
 `AuthorizationAnnotations` (`@DeliveryPartnerOnly`, `@AdminOnly`, `@ConsumerOnly`), and the
 authenticated user resolved from the JWT (never trusted from the request body).

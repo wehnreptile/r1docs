@@ -48,7 +48,7 @@ responsibility and a narrow interface.
 
 ```
                           ┌─────────────────────────────────────────────────────┐
-                          │                    pharma-service                     │
+                          │                          rgs                          │
                           │                                                       │
   Store owner ──READY──▶  │  Order domain                                         │
                           │   └─ publishes OrderReadyForPickupEvent ──┐           │
