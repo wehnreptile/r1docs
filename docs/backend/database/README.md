@@ -4,12 +4,63 @@ This section holds the working diagram of the rgs Postgres schema: tables, colum
 
 | File | What it is |
 |---|---|
-| [`rgs-schema.dbml`](/docs/backend/database/rgs-schema.dbml) | The **current** schema, matching Flyway migrations V1 → V4 |
+| [`rgs-schema.dbml`](https://github.com/wehnreptile/r1docs/blob/master/docs/backend/database/rgs-schema.dbml) | The **current** schema, matching Flyway migrations V1 → V4 |
 | `proposals/<feature>.dbml` | Proposed changes, discussed before any migration is written (none yet) |
 
 The Flyway migrations in `rgs/src/main/resources/db/migration` are the source of truth. This file is a readable map of them, not a replacement.
 
-## Viewing the diagram
+## Diagrams
+
+These diagrams are drawn from `rgs-schema.dbml` every time the page loads, so they're always current. Press **Full screen** on any diagram to zoom and pan.
+
+In each group's diagram, the group's own tables show all their columns. Tables from other groups that it links to appear as dashed boxes with no columns.
+
+### user
+
+```dbml-diagram
+/docs/backend/database/rgs-schema.dbml
+group: user
+```
+
+### store
+
+```dbml-diagram
+/docs/backend/database/rgs-schema.dbml
+group: store
+```
+
+### inventory
+
+```dbml-diagram
+/docs/backend/database/rgs-schema.dbml
+group: inventory
+```
+
+### cart
+
+```dbml-diagram
+/docs/backend/database/rgs-schema.dbml
+group: cart
+```
+
+### order
+
+```dbml-diagram
+/docs/backend/database/rgs-schema.dbml
+group: order
+```
+
+### Full schema
+
+```dbml-diagram
+/docs/backend/database/rgs-schema.dbml
+```
+
+To put a diagram on any docs page, add a `dbml-diagram` block. Its first line is the `.dbml` file's path, and an optional `group:` line limits it to one `TableGroup`.
+
+## Editing the layout on dbdiagram.io
+
+dbdiagram.io lets you rearrange the tables yourself:
 
 1. Open [dbdiagram.io/d](https://dbdiagram.io/d).
 2. Paste the full contents of `rgs-schema.dbml` into the left pane.

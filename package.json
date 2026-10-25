@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@dbml/parse": "10.3.1",
     "@google/genai": "^1.41.0",
     "@types/react-syntax-highlighter": "^15.5.13",
     "mermaid": "^11.16.0",

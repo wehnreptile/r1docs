@@ -15,56 +15,8 @@ import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
-import mermaid from "mermaid";
-
-// Initialise mermaid once for the whole app.
-mermaid.initialize({
-  startOnLoad: false,
-  theme: "neutral",
-  securityLevel: "loose",
-  fontFamily: "JetBrains Mono, monospace",
-});
-
-/**
- * Renders a ```mermaid fenced block as an SVG diagram. Falls back to showing the
- * raw diagram source if mermaid fails to parse it.
- */
-const MermaidDiagram: React.FC<{ chart: string }> = ({ chart }) => {
-  const [svg, setSvg] = useState<string>("");
-  const [failed, setFailed] = useState<boolean>(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    setFailed(false);
-    const id = "mermaid-" + Math.random().toString(36).slice(2, 11);
-    mermaid
-      .render(id, chart)
-      .then(({ svg }) => {
-        if (!cancelled) setSvg(svg);
-      })
-      .catch(() => {
-        if (!cancelled) setFailed(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [chart]);
-
-  if (failed) {
-    return (
-      <pre className="bg-slate-900 text-slate-200 p-4 rounded-xl overflow-x-auto text-sm font-mono my-6">
-        {chart}
-      </pre>
-    );
-  }
-
-  return (
-    <div
-      className="my-8 flex justify-center overflow-x-auto rounded-2xl border border-slate-200 bg-white p-6"
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
-  );
-};
+import MermaidDiagram from "./diagram/MermaidDiagram";
+import DbmlDiagram from "./diagram/DbmlDiagram";
 
 // Include markdown files in the build so production can load them.
 // Use new Vite options: `query: '?raw'` and `import: 'default'`.
@@ -184,7 +136,7 @@ const ContentArea: React.FC<ContentAreaProps> = ({
       return <>{children}</>;
     },
     code({ node, className, children, ...props }: any) {
-      const match = /language-(\w+)/.exec(className || "");
+      const match = /language-([\w-]+)/.exec(className || "");
       const codeString = String(children).replace(/\n$/, "");
       // A fenced block either has a language or spans multiple lines. Anything
       // else is inline code. (react-markdown v10 no longer passes `inline`.)
@@ -193,6 +145,11 @@ const ContentArea: React.FC<ContentAreaProps> = ({
       // Mermaid diagrams render as SVG.
       if (match && match[1] === "mermaid") {
         return <MermaidDiagram chart={codeString} />;
+      }
+
+      // DBML files render as ER diagrams.
+      if (match && match[1] === "dbml-diagram") {
+        return <DbmlDiagram source={codeString} />;
       }
 
       // Inline code.
